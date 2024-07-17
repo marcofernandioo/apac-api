@@ -20,15 +20,25 @@ from src.models.Record import Record
 from src.models.Group import Group
 from src.models.Intake import Intake
 from src.models.Semester import Semester
-from src.models.Course import Course
-from src.models.Programme import Programme
-from src.models.Major import Major
+# from src.models.Course import Course
+# from src.models.Programme import Programme
+# from src.models.Major import Major
  
+from src.controllers.admin import courses, programmes, majors
+from src.controllers.scheduler import semesters, intakes
+
 from . import models
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+app.include_router(courses.router, prefix="/admin/courses", tags=["admin", "courses"])
+app.include_router(programmes.router, prefix="/admin/programmes", tags=["admin", "programmes"])
+app.include_router(majors.router, prefix="/admin/majors", tags=["admin", "major"])
+
+app.include_router(semesters.router, prefix="/admin/intakes", tags=["scheduler", "intakes"])
+app.include_router(intakes.router, prefix="/admin/semesters", tags=["scheduler", "semesters"])
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -82,229 +92,229 @@ def get_all_groups(db: Annotated[Session, Depends(get_db)]):
     groups = db.query(Group).all()
     return groups
 
-# Create an Intake
-@app.post('/intake', response_model = IntakeRead)
-def create_intake(intake: IntakeBase, db: Annotated[Session, Depends(get_db)]):
-    db_intake = Intake(**intake.dict())
-    db.add(db_intake)
-    db.commit()
-    db.refresh(db_intake)
-    return db_intake
+# # Create an Intake
+# @app.post('/intake', response_model = IntakeRead)
+# def create_intake(intake: IntakeBase, db: Annotated[Session, Depends(get_db)]):
+#     db_intake = Intake(**intake.dict())
+#     db.add(db_intake)
+#     db.commit()
+#     db.refresh(db_intake)
+#     return db_intake
 
-# Get all intakes
-@app.get('/intake/all', response_model=List[IntakeRead])
-def get_all_intake(db: Annotated[Session, Depends(get_db)]):
-    intake = db.query(Intake).all()
-    return intake
+# # Get all intakes
+# @app.get('/intake/all', response_model=List[IntakeRead])
+# def get_all_intake(db: Annotated[Session, Depends(get_db)]):
+#     intake = db.query(Intake).all()
+#     return intake
 
-# Create a Semester
-@app.post('/semester', response_model = SemesterRead)
-def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_db)]):
-    db_semester = Semester(**semester.dict())
-    db.add(db_semester)
-    db.commit()
-    db.refresh(db_semester)
-    return db_semester
+# # Create a Semester
+# @app.post('/semester', response_model = SemesterRead)
+# def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_db)]):
+#     db_semester = Semester(**semester.dict())
+#     db.add(db_semester)
+#     db.commit()
+#     db.refresh(db_semester)
+#     return db_semester
 
-@app.get('/semester/all', response_model = List[SemesterRead])
-def get_all_semester(db: Annotated[Session, Depends(get_db)]):
-    semester = db.query(Semester).all()
-    return semester
+# @app.get('/semester/all', response_model = List[SemesterRead])
+# def get_all_semester(db: Annotated[Session, Depends(get_db)]):
+#     semester = db.query(Semester).all()
+#     return semester
 
-@app.post('/semester/create', response_model = List[SemesterRead])
-def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput, db: Session = Depends(get_db)):
-    # 1. Validation: Check if selected intake exists.
+# @app.post('/semester/create', response_model = List[SemesterRead])
+# def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput, db: Session = Depends(get_db)):
+#     # 1. Validation: Check if selected intake exists.
     
-    # 2. Validation: Check the number of semesters in the request
-    # semester_per_course = 2 # Placeholder for now.
-    # if 2 != len(semester_input):
-    #     raise HTTPException(status_code=400, detail="An intake cannot have more than 6 semesters")
+#     # 2. Validation: Check the number of semesters in the request
+#     # semester_per_course = 2 # Placeholder for now.
+#     # if 2 != len(semester_input):
+#     #     raise HTTPException(status_code=400, detail="An intake cannot have more than 6 semesters")
     
-    # 3. Create the Semester object
-    created_sems = []
-    for semester in semester_input.semesters:
-        # Create new Semester object
-        new_semester = Semester(
-            intakeid=intake_id,
-            name=semester.name,
-            startdate=semester.startdate,
-            enddate=semester.enddate,
-            bufferstart=semester.bufferstart,
-            bufferend=semester.bufferend,
-            examstart=semester.examstart,
-            examend=semester.examend,
-            midsemstart=semester.midsemstart,
-            midsemend=semester.midsemend,
-            midsemduration=semester.midsemduration,
-            buffersemduration=semester.buffersemduration,
-            examduration=semester.examduration,
-        )
+#     # 3. Create the Semester object
+#     created_sems = []
+#     for semester in semester_input.semesters:
+#         # Create new Semester object
+#         new_semester = Semester(
+#             intakeid=intake_id,
+#             name=semester.name,
+#             startdate=semester.startdate,
+#             enddate=semester.enddate,
+#             bufferstart=semester.bufferstart,
+#             bufferend=semester.bufferend,
+#             examstart=semester.examstart,
+#             examend=semester.examend,
+#             midsemstart=semester.midsemstart,
+#             midsemend=semester.midsemend,
+#             midsemduration=semester.midsemduration,
+#             buffersemduration=semester.buffersemduration,
+#             examduration=semester.examduration,
+#         )
 
-        db.add(new_semester)
-        created_sems.append(new_semester)
+#         db.add(new_semester)
+#         created_sems.append(new_semester)
 
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+#     try:
+#         db.commit()
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=400, detail=str(e))
 
-    return created_sems
+#     return created_sems
 
-@app.put('/semester/update/{semester_id}', response_model=SemesterRead)
-def update_semester(semester_id: int, semester_input: SemesterUpdate, db: Session = Depends(get_db)):
-    # 1. Fetch the semester
-    semester = db.query(Semester).filter(Semester.id == semester_id).first()
-    if not semester:
-        raise HTTPException(status_code=404, detail="Semester not found")
+# @app.put('/semester/update/{semester_id}', response_model=SemesterRead)
+# def update_semester(semester_id: int, semester_input: SemesterUpdate, db: Session = Depends(get_db)):
+#     # 1. Fetch the semester
+#     semester = db.query(Semester).filter(Semester.id == semester_id).first()
+#     if not semester:
+#         raise HTTPException(status_code=404, detail="Semester not found")
 
-    # 2. Update the semester object
-    for key, value in semester_input.dict(exclude_unset=True).items():
-        setattr(semester, key, value)
+#     # 2. Update the semester object
+#     for key, value in semester_input.dict(exclude_unset=True).items():
+#         setattr(semester, key, value)
 
-    try:
-        db.commit()
-        db.refresh(semester)
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
+#     try:
+#         db.commit()
+#         db.refresh(semester)
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=400, detail=str(e))
 
-    return semester
+#     return semester
 
-# Create Course
-@app.post('/course', response_model = CourseCreate)
-def create_course(course: CourseCreate, db: Annotated[Session, Depends(get_db)]):
-    db_course = Course(coursename=course.coursename)
-    db.add(db_course)
-    db.commit()
-    db.refresh(db_course)
-    return db_course
+# # Create Course
+# @app.post('/course', response_model = CourseCreate)
+# def create_course(course: CourseCreate, db: Annotated[Session, Depends(get_db)]):
+#     db_course = Course(coursename=course.coursename)
+#     db.add(db_course)
+#     db.commit()
+#     db.refresh(db_course)
+#     return db_course
 
-# Create Course
-@app.get('/course/all', response_model = List[CourseRead])
-def create_course(db: Annotated[Session, Depends(get_db)]):
-    all_courses = db.query(Course).all()
-    return all_courses;
+# # Create Course
+# @app.get('/course/all', response_model = List[CourseRead])
+# def create_course(db: Annotated[Session, Depends(get_db)]):
+#     all_courses = db.query(Course).all()
+#     return all_courses;
 
-# Delete Course with certain ID.
-@app.delete('/course/{course_id}', response_model=None)
-def delete_course(course_id: int, db: Annotated[Session, Depends(get_db)]):
-    db_course = db.query(Course).filter(Course.id == course_id).first()
-    if db_course is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+# # Delete Course with certain ID.
+# @app.delete('/course/{course_id}', response_model=None)
+# def delete_course(course_id: int, db: Annotated[Session, Depends(get_db)]):
+#     db_course = db.query(Course).filter(Course.id == course_id).first()
+#     if db_course is None:
+#         raise HTTPException(status_code=404, detail="Course not found")
     
-    db.delete(db_course)
-    db.commit()
-    return {"message": f"Course {course_id} has been deleted successfully"}
+#     db.delete(db_course)
+#     db.commit()
+#     return {"message": f"Course {course_id} has been deleted successfully"}
 
-# Update Course
-@app.put('/course/{course_id}', response_model=CourseCreate)
-def update_course(course_id: int, course: CourseUpdate, db: Annotated[Session, Depends(get_db)]):
-    db_course = db.query(Course).filter(Course.id == course_id).first()
-    if db_course is None:
-        raise HTTPException(status_code=404, detail="Course not found")
+# # Update Course
+# @app.put('/course/{course_id}', response_model=CourseCreate)
+# def update_course(course_id: int, course: CourseUpdate, db: Annotated[Session, Depends(get_db)]):
+#     db_course = db.query(Course).filter(Course.id == course_id).first()
+#     if db_course is None:
+#         raise HTTPException(status_code=404, detail="Course not found")
     
-    db_course.coursename = course.coursename
-    db.commit()
-    db.refresh(db_course)
-    return db_course
+#     db_course.coursename = course.coursename
+#     db.commit()
+#     db.refresh(db_course)
+#     return db_course
 
 
-# Create
-@app.post("/programmes/", response_model= ProgrammeRead)
-def create_programme(programme: ProgrammeCreate, db: Session = Depends(get_db)):
-    db_programme = Programme(**programme.dict())
-    db.add(db_programme)
-    db.commit()
-    db.refresh(db_programme)
-    return db_programme
+# # Create
+# @app.post("/programmes/", response_model= ProgrammeRead)
+# def create_programme(programme: ProgrammeCreate, db: Session = Depends(get_db)):
+#     db_programme = Programme(**programme.dict())
+#     db.add(db_programme)
+#     db.commit()
+#     db.refresh(db_programme)
+#     return db_programme
 
-# Read (all)
-@app.get("/programmes/", response_model=List[ProgrammeRead])
-def read_programmes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    programmes = db.query(Programme).offset(skip).limit(limit).all()
-    return programmes
+# # Read (all)
+# @app.get("/programmes/", response_model=List[ProgrammeRead])
+# def read_programmes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+#     programmes = db.query(Programme).offset(skip).limit(limit).all()
+#     return programmes
 
-# Read (single)
-@app.get("/programmes/{programme_id}", response_model= ProgrammeRead)
-def read_programme(programme_id: int, db: Session = Depends(get_db)):
-    db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
-    if db_programme is None:
-        raise HTTPException(status_code=404, detail="Programme not found")
-    return db_programme
+# # Read (single)
+# @app.get("/programmes/{programme_id}", response_model= ProgrammeRead)
+# def read_programme(programme_id: int, db: Session = Depends(get_db)):
+#     db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
+#     if db_programme is None:
+#         raise HTTPException(status_code=404, detail="Programme not found")
+#     return db_programme
 
-# Update
-@app.put("/programmes/{programme_id}", response_model= ProgrammeRead)
-def update_programme(programme_id: int, programme: ProgrammeUpdate, db: Session = Depends(get_db)):
-    db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
-    if db_programme is None:
-        raise HTTPException(status_code=404, detail="Programme not found")
+# # Update
+# @app.put("/programmes/{programme_id}", response_model= ProgrammeRead)
+# def update_programme(programme_id: int, programme: ProgrammeUpdate, db: Session = Depends(get_db)):
+#     db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
+#     if db_programme is None:
+#         raise HTTPException(status_code=404, detail="Programme not found")
     
-    update_data = programme.dict(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_programme, key, value)
+#     update_data = programme.dict(exclude_unset=True)
+#     for key, value in update_data.items():
+#         setattr(db_programme, key, value)
     
-    db.commit()
-    db.refresh(db_programme)
-    return db_programme
+#     db.commit()
+#     db.refresh(db_programme)
+#     return db_programme
 
-# Delete
-@app.delete("/programmes/{programme_id}", response_model= ProgrammeRead)
-def delete_programme(programme_id: int, db: Session = Depends(get_db)):
-    db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
-    if db_programme is None:
-        raise HTTPException(status_code=404, detail="Programme not found")
+# # Delete
+# @app.delete("/programmes/{programme_id}", response_model= ProgrammeRead)
+# def delete_programme(programme_id: int, db: Session = Depends(get_db)):
+#     db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
+#     if db_programme is None:
+#         raise HTTPException(status_code=404, detail="Programme not found")
     
-    db.delete(db_programme)
-    db.commit()
-    return db_programme
+#     db.delete(db_programme)
+#     db.commit()
+#     return db_programme
 
-# Create Major
-@app.post('/major', response_model = MajorRead)
-def create_major(major: MajorCreate, db: Session = Depends(get_db)):
-    db_major = Major(**major.dict())
-    db.add(db_major) 
-    db.commit()
-    db.refresh(db_major)
-    return db_major
+# # Create Major
+# @app.post('/major', response_model = MajorRead)
+# def create_major(major: MajorCreate, db: Session = Depends(get_db)):
+#     db_major = Major(**major.dict())
+#     db.add(db_major) 
+#     db.commit()
+#     db.refresh(db_major)
+#     return db_major
 
 
-# Read one Major
-@app.get('/major/{major_id}', response_model = MajorRead)
-def read_major(major_id: int, db: Session = Depends(get_db)):
-    db_major = db.query(Major).filter(Major.id == major_id).first()
-    if db_major is None:
-        raise HTTPException(status_code=404, detail="Major not found")
-    return db_major
+# # Read one Major
+# @app.get('/major/{major_id}', response_model = MajorRead)
+# def read_major(major_id: int, db: Session = Depends(get_db)):
+#     db_major = db.query(Major).filter(Major.id == major_id).first()
+#     if db_major is None:
+#         raise HTTPException(status_code=404, detail="Major not found")
+#     return db_major
 
-# Read all Majors
-@app.get("/majors/", response_model=List[MajorRead])
-def read_majors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    majors = db.query(Major).offset(skip).limit(limit).all()
-    return majors
+# # Read all Majors
+# @app.get("/majors/", response_model=List[MajorRead])
+# def read_majors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+#     majors = db.query(Major).offset(skip).limit(limit).all()
+#     return majors
 
-# Update One Major
-@app.put("/majors/{major_id}", response_model=MajorRead)
-def update_major(major_id: int, major: MajorUpdate, db: Session = Depends(get_db)):
-    db_major = db.query(Major).filter(Major.id == major_id).first()
-    if db_major is None:
-        raise HTTPException(status_code=404, detail="Major not found")
-    update_data = major.dict(exclude_unset=True)
-    for key, value in update_data.items(): 
-        setattr(db_major, key, value)
-    db.commit()
-    db.refresh(db_major)
-    return db_major
+# # Update One Major
+# @app.put("/majors/{major_id}", response_model=MajorRead)
+# def update_major(major_id: int, major: MajorUpdate, db: Session = Depends(get_db)):
+#     db_major = db.query(Major).filter(Major.id == major_id).first()
+#     if db_major is None:
+#         raise HTTPException(status_code=404, detail="Major not found")
+#     update_data = major.dict(exclude_unset=True)
+#     for key, value in update_data.items(): 
+#         setattr(db_major, key, value)
+#     db.commit()
+#     db.refresh(db_major)
+#     return db_major
 
-# Delete One Major
-@app.delete("/majors/{major_id}", response_model=MajorRead)
-def delete_major(major_id: int, db: Session = Depends(get_db)):
-    db_major = db.query(Major).filter(Major.id == major_id).first()
-    if db_major is None:
-        raise HTTPException(status_code=404, detail="Major not found")
-    db.delete(db_major)
-    db.commit()
-    return db_major
+# # Delete One Major
+# @app.delete("/majors/{major_id}", response_model=MajorRead)
+# def delete_major(major_id: int, db: Session = Depends(get_db)):
+#     db_major = db.query(Major).filter(Major.id == major_id).first()
+#     if db_major is None:
+#         raise HTTPException(status_code=404, detail="Major not found")
+#     db.delete(db_major)
+#     db.commit()
+#     return db_major
 
 if __name__ == "__main__":
     print("connected to db.")

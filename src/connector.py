@@ -13,3 +13,13 @@ engine = create_engine(db_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+# Create SessionLocal class
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+async def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
