@@ -5,3 +5,6 @@ python-dateutil
 sqlalchemy
 pymysql
 alembic
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
