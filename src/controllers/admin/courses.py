@@ -3,10 +3,11 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing_extensions import Annotated
 from typing import List
 
-
 from src.schema.Course import CourseRead, CourseCreate, CourseBase, CourseUpdate
 from src.models.Course import Course
 from src.connector import get_db
+from src.auth.decorators import admin_required
+from src.auth.jwt import get_current_user, RoleChecker
 
 router = APIRouter()
 
@@ -20,8 +21,10 @@ def create_course(course: CourseCreate, db: Annotated[Session, Depends(get_db)])
     return db_course
 
 # Create Course
-@router.get('/course/all', response_model = List[CourseRead])
-def create_course(db: Annotated[Session, Depends(get_db)]):
+@router.get('/course/all', response_model = List[CourseRead], dependencies = [Depends(RoleChecker(["admin"]))])
+# @admin_required
+# @role_required('admin')
+def create_course(db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
     all_courses = db.query(Course).all()
     return all_courses;
 

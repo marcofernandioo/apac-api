@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+from datetime import timedelta
+from functools import wraps
 
 from src.auth.jwt import create_access_token, verify_token
 # from src.models.user import User, UserInDB
-# from src.core.config import settings
+from src.auth.config import settings
 
 from src.models.Admin import Admin
 from src.models.Scheduler import Scheduler
@@ -104,10 +106,18 @@ async def login(user: UserLogin, db: Session = Depends(get_db)):
 
     # If db_user not found, or password is not verified.
     if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+        
+    access_token_expires = timedelta(minutes=30)  # You can adjust this value
+    access_token = create_access_token(
+        data={"sub": db_user.email, "role": user_type}, expires_delta=access_token_expires
+    )
 
-    return {"message": "Login successful", "user_type": user_type}
-    
+    return {"message": "Login successful", "token_type": "bearer", "access_token": access_token}
 
 # @router.post("/logout")
 # async def logout(current_user: User = Depends(verify_token)):

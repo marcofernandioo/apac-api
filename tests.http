@@ -1,0 +1,3 @@
+###
+GET http://localhost:8001/admin/courses/course/all
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBtYWlsLmFwdS5lZHUubXkiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3MjE0NjgzNDV9.XJOhwnOpmxLxpsT5TT30R26V-Tk5NLJy14xO111WVdI
