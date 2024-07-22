@@ -6,25 +6,26 @@ from typing import List
 from src.connector import get_db
 from src.schema.Semester import SemesterRead, SemesterCreate, SemesterBase, SemesterUpdate, SemesterListInput
 from src.models.Semester import Semester
+from src.auth.jwt import get_current_user, RoleChecker
 
 router = APIRouter()
 
 # Create a Semester
-@router.post('/semester', response_model = SemesterRead)
-def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_db)]):
+@router.post('/semester', response_model = SemesterRead, dependencies = [Depends(RoleChecker(["scheduler"]))])
+def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
     db_semester = Semester(**semester.dict())
     db.add(db_semester)
     db.commit()
     db.refresh(db_semester)
     return db_semester
 
-@router.get('/semester/all', response_model = List[SemesterRead])
-def get_all_semester(db: Annotated[Session, Depends(get_db)]):
+@router.get('/semester/all', response_model = List[SemesterRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
+def get_all_semester(db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
     semester = db.query(Semester).all()
     return semester
 
-@router.post('/semester/create', response_model = List[SemesterRead])
-def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput, db: Session = Depends(get_db)):
+@router.post('/semester/create', response_model = List[SemesterRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
+def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     # 1. Validation: Check if selected intake exists.
     
     # 2. Validation: Check the number of semesters in the request

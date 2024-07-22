@@ -3,7 +3,7 @@ from typing import Optional, List
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, HTTPBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session 
 
 from src.auth.config import settings
 from src.connector import get_db
@@ -12,7 +12,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 security = HTTPBearer()
 
 def RoleChecker(allowed_roles: List[str]):
-    print(get_current_user())
     async def check_role(user: dict = Depends(get_current_user)):
         if user.get("role") not in allowed_roles:
             raise HTTPException(status_code=403, detail="Operation not permitted")
