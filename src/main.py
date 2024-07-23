@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from pydantic import BaseModel
 from typing_extensions import Annotated # Import from here instead of pydantic.
@@ -15,13 +16,14 @@ from src.schema.Semester import SemesterRead, SemesterCreate, SemesterBase, Seme
 from src.schema.Course import CourseRead, CourseCreate, CourseBase, CourseUpdate
 from src.schema.Major import MajorBase, MajorCreate, MajorRead, MajorUpdate
 from src.schema.Programme import ProgrammeBase, ProgrammeCreate, ProgrammeRead, ProgrammeUpdate
+from src.schema.Parent import AssignableResponse
 
 from src.models.Record import Record
 from src.models.Group import Group
 from src.models.Intake import Intake
 from src.models.Semester import Semester
-# from src.models.Course import Course
-# from src.models.Programme import Programme
+from src.models.Course import Course
+from src.models.Programme import Programme
 # from src.models.Major import Major
  
 from src.controllers.admin import courses, programmes, majors
@@ -34,12 +36,20 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:4200"],
+    allow_credentials=True, 
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(courses.router, prefix="/admin/courses", tags=["admin", "courses"])
 app.include_router(programmes.router, prefix="/admin/programmes", tags=["admin", "programmes"])
 app.include_router(majors.router, prefix="/admin/majors", tags=["admin", "major"])
 
-app.include_router(semesters.router, prefix="/admin/intakes", tags=["scheduler", "intakes"])
-app.include_router(intakes.router, prefix="/admin/semesters", tags=["scheduler", "semesters"])
+app.include_router(semesters.router, prefix="/scheduler/intakes", tags=["scheduler", "intakes"])
+app.include_router(intakes.router, prefix="/scheduler/semesters", tags=["scheduler", "semesters"])
 
 app.include_router(routes.router, prefix="/auth", tags=["auth"])
 
@@ -95,6 +105,34 @@ def get_all_groups(db: Annotated[Session, Depends(get_db)]):
     groups = db.query(Group).all()
     return groups
 
+@app.get('/parent/all', response_model=AssignableResponse)
+def get_all_parents(db: Annotated[Session, Depends(get_db)]):
+    # Query for assignable courses
+    assignable_courses = db.query(Course).filter(Course.assignableIntake == True).all()
+    
+    # Query for assignable programmes
+    assignable_programmes = db.query(Programme).filter(Programme.assignableIntake == True).all()
+    
+    # Combine and format the results
+    result = []
+    for course in assignable_courses:
+        result.append(CourseRead(
+            id=course.id,
+            coursename=course.coursename,
+            assignableIntake=course.assignableIntake,
+            code=course.code
+        ))
+    for programme in assignable_programmes:
+        result.append(ProgrammeRead(
+            id=programme.id,
+            programmename=programme.programmename,
+            semesters=programme.semesters,
+            course_id=programme.course_id,
+            assignableIntake=programme.assignableIntake,
+            code=programme.code
+        ))
+   
+    return AssignableResponse(items=result)
 
 if __name__ == "__main__":
-    print("connected to db.")
+    print("connected to db.") 

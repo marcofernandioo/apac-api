@@ -14,7 +14,7 @@ router = APIRouter()
 # Create Course
 @router.post('/course', response_model = CourseCreate, dependencies = [Depends(RoleChecker(["admin"]))])
 def create_course(course: CourseCreate, db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
-    db_course = Course(coursename=course.coursename)
+    db_course = Course(**course.dict())
     db.add(db_course)
     db.commit()
     db.refresh(db_course)

@@ -1,3 +1,8 @@
 ###
 GET http://localhost:8001/admin/courses/course/all
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBtYWlsLmFwdS5lZHUubXkiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjE3MjE0NjgzNDV9.XJOhwnOpmxLxpsT5TT30R26V-Tk5NLJy14xO111WVdI
+
+
+###
+GET http://localhost:8001/scheduler/intakes/semester/all
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzY2hlZHVsZXJAbWFpbC5hcHUuZWR1Lm15Iiwicm9sZSI6InNjaGVkdWxlciIsImV4cCI6MTcyMTcyMDc4NH0.G15NubqI509ZFY1fe-9S0wEyZ4ubSNn437YO4HhlfBY

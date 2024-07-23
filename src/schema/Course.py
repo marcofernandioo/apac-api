@@ -4,6 +4,8 @@ from datetime import date
 
 class CourseBase(BaseModel):
     coursename: str
+    assignableIntake: bool = False
+    code: Optional[str] = None
     
 class CourseCreate(CourseBase):
     pass

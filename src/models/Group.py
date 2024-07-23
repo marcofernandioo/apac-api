@@ -6,3 +6,5 @@ class Group(Base):
     
     id = Column(Integer, primary_key = True, index = True)
     groupname = Column(String(50))
+    parentid = Column(Integer, nullable=False)
+    parenttype = Column(String(100), nullable=False)

@@ -5,6 +5,8 @@ class ProgrammeBase(BaseModel):
     programmename: str
     semesters: int 
     course_id: int
+    assignableIntake: bool = False
+    code: str
 
 class ProgrammeCreate(ProgrammeBase):
     pass
