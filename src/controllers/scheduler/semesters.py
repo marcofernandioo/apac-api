@@ -25,7 +25,7 @@ def get_all_semester(db: Annotated[Session, Depends(get_db)], current_user: dict
     return semester
 
 @router.post('/semester/create', response_model = List[SemesterRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
-def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def create_multiple_semesters(intake_id: int, semester_input: List[SemesterCreate], db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     # 1. Validation: Check if selected intake exists.
     
     # 2. Validation: Check the number of semesters in the request
@@ -35,7 +35,7 @@ def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput,
     
     # 3. Create the Semester object
     created_sems = []
-    for semester in semester_input.semesters:
+    for semester in semester_input:
         # Create new Semester object
         new_semester = Semester(
             intakeid=intake_id,
@@ -54,7 +54,7 @@ def create_multiple_semesters(intake_id: int, semester_input: SemesterListInput,
         )
 
         db.add(new_semester)
-        created_sems.routerend(new_semester)
+        # created_sems.routerend(new_semester)
 
     try:
         db.commit()

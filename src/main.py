@@ -103,15 +103,19 @@ def create_group(group: GroupCreate, db: Annotated[Session, Depends(get_db)]):
 @app.get('/group/all', response_model=List[GroupRead])
 def get_all_groups(
     db: Annotated[Session, Depends(get_db)],
-    parentid: Optional[int] = Query(None, description="Parent ID to filter groups"),
-    parenttype: Optional[str] = Query(None, description="Parent type to filter groups")
+    parentid: Optional[str] = Query("", description="Parent ID to filter groups"),
+    parenttype: Optional[str] = Query("", description="Parent type to filter groups")
 ):
-    groups = db.query(Group)
-    if parenttype is not None: 
-        querytype = groups.filter(Group.parenttype == parenttype)
-    if parentid is not None:
-        queryid = groups.filter(Group.parentid == parentid);
-    groups.all()
+    query = db.query(Group)
+
+    if parenttype != "" and parentid != "":
+        query = query.filter(Group.parenttype == parenttype, Group.parentid == int(parentid))
+    elif parenttype != "":
+        query = query.filter(Group.parenttype == parenttype)
+    elif parentid != "":
+        query = query.filter(Group.parentid == int(parentid))
+
+    groups = query.all()
     return groups
 
 @app.get('/parent/all', response_model=AssignableResponse)

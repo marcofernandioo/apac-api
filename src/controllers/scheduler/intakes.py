@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import extract
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker, Session, joinedload
 from typing_extensions import Annotated
 from typing import List, Optional
 
@@ -27,15 +27,22 @@ def get_all_intake(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user),
     year: Optional[int] = Query(None, description="Filter intakes by year"),
-    groupname: Optional[str] = Query(None, description="Filter intakes by group name")
+    groupname: Optional[str] = Query(None, description="Filter intakes by group name"),
+    # group_ids: List[int] = Query(None, description="Filter intakes by list of group IDs")
+    group_ids: Optional[str] = Query(None, description="Filter intakes by comma-separated list of group IDs")
 ):
     query = db.query(Intake).join(Group)
+    # query = db.query(Intake).options(joinedload(Intake.group))
     
     if year is not None:
         query = query.filter(extract('year', Intake.startdate) == year)
     
     if groupname is not None:
         query = query.filter(Group.groupname == groupname)
+    
+    if group_ids:
+        group_id_list = [int(id) for id in group_ids.split(',')]
+        query = query.filter(Intake.groupid.in_(group_id_list))
     
     intakes = query.all()
     return intakes
