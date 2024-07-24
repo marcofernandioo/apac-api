@@ -2,6 +2,8 @@ from pydantic import BaseModel
 
 class GroupBase(BaseModel):
     groupname: str
+    parentid: int
+    parenttype: str
 
 class GroupCreate(GroupBase):
     pass

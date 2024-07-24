@@ -20,7 +20,7 @@ def create_course(course: CourseCreate, db: Annotated[Session, Depends(get_db)],
     db.refresh(db_course)
     return db_course
 
-# Create Course
+# Get All Courses
 @router.get('/course/all', response_model = List[CourseRead], dependencies = [Depends(RoleChecker(["admin"]))])
 def create_course(db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
     all_courses = db.query(Course).all()

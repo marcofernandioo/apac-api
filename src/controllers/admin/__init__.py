@@ -5,10 +5,9 @@ from .majors import router as majors_router
 
 router = APIRouter()
 
-router.include_router(courses_router, prefix="/courses", tags=["courses"])
-print("llm")
-router.include_router(programmes_router, prefix="/programmes", tags=["programmes"])
-router.include_router(majors_router, prefix="/majors", tags=["majors"])
+router.include_router(courses_router, tags=["courses"])
+router.include_router(programmes_router, tags=["programmes"])
+router.include_router(majors_router, tags=["majors"])
 
 # You can also add any admin-wide dependencies or middleware here
 # For example:

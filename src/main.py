@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Query
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 from typing_extensions import Annotated # Import from here instead of pydantic.
 
@@ -44,12 +44,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(courses.router, prefix="/admin/courses", tags=["admin", "courses"])
-app.include_router(programmes.router, prefix="/admin/programmes", tags=["admin", "programmes"])
-app.include_router(majors.router, prefix="/admin/majors", tags=["admin", "major"])
+app.include_router(courses.router, prefix="/admin", tags=["admin", "courses"])
+app.include_router(programmes.router, prefix="/admin", tags=["admin", "programmes"])
+app.include_router(majors.router, prefix="/admin", tags=["admin", "major"])
 
-app.include_router(semesters.router, prefix="/scheduler/intakes", tags=["scheduler", "intakes"])
-app.include_router(intakes.router, prefix="/scheduler/semesters", tags=["scheduler", "semesters"])
+app.include_router(semesters.router, prefix="/scheduler", tags=["scheduler", "semesters"])
+app.include_router(intakes.router, prefix="/scheduler", tags=["scheduler", "intakes"])
 
 app.include_router(routes.router, prefix="/auth", tags=["auth"])
 
@@ -93,7 +93,7 @@ def testpost_get(db: db_dependency):
 # Create a Group
 @app.post('/group', response_model=GroupRead)
 def create_group(group: GroupCreate, db: Annotated[Session, Depends(get_db)]):
-    db_group = Group(groupname=group.groupname) 
+    db_group = Group(**group.dict())
     db.add(db_group)
     db.commit()
     db.refresh(db_group)
@@ -101,8 +101,17 @@ def create_group(group: GroupCreate, db: Annotated[Session, Depends(get_db)]):
 
 # Get all groups
 @app.get('/group/all', response_model=List[GroupRead])
-def get_all_groups(db: Annotated[Session, Depends(get_db)]):
-    groups = db.query(Group).all()
+def get_all_groups(
+    db: Annotated[Session, Depends(get_db)],
+    parentid: Optional[int] = Query(None, description="Parent ID to filter groups"),
+    parenttype: Optional[str] = Query(None, description="Parent type to filter groups")
+):
+    groups = db.query(Group)
+    if parenttype is not None: 
+        querytype = groups.filter(Group.parenttype == parenttype)
+    if parentid is not None:
+        queryid = groups.filter(Group.parentid == parentid);
+    groups.all()
     return groups
 
 @app.get('/parent/all', response_model=AssignableResponse)
