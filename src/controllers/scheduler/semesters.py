@@ -25,16 +25,19 @@ def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_d
 def get_all_semester(
     db: Annotated[Session, Depends(get_db)], 
     current_user: dict = Depends(get_current_user), 
-    intakeid: Optional[str] = Query(None, description='Filter semesters by intake id')
+    intakeid: Optional[str] = Query(None, description='Filter semesters by intake id'),
+    intake_ids: Optional[str] = Query(None, description='Filter semesters by comma-separated list of intake IDs')
 ):
     query = db.query(Semester)
     
     if intakeid is not None:
-        query = query.filter(Semester.intakeid == int(intakeid))
+        query = query.filter(Semester.intakeid == intakeid)
+        
+    if intake_ids:
+        intake_id_list = [id.strip() for id in intake_ids.split(',')]
+        query = query.filter(Semester.intakeid.in_(intake_id_list))
     
     semesters = query.all()
-    print('all sems.')
-    print(semesters)
     return semesters
 
 @router.post('/semester/create', response_model = List[SemesterRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
