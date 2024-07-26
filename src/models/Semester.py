@@ -8,6 +8,7 @@ class Semester(Base):
     name = Column(String(50))
     startdate = Column(Date)
     enddate = Column(Date) 
+    duration = Column(Integer)
     midsemstart = Column(Date)
     midsemend = Column(Date)
     midsemduration = Column(Integer)

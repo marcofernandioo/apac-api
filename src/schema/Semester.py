@@ -52,6 +52,7 @@ class SemesterBase(BaseModel):
     name: str
     startdate: date
     enddate: date
+    duration: int
     midsemstart: date
     midsemend: date
     midsemduration: int
@@ -86,7 +87,7 @@ class SemesterUpdate(BaseModel):
     examstart: Optional[date] = None
     examend: Optional[date] = None
     examduration: Optional[int] = None
-    intakeid: Optional[int] = None
+    # intakeid: Optional[int] = None
 
 class SemesterListInput(BaseModel):
     semesters: List[SemesterBase]
