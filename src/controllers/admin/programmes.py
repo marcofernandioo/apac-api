@@ -34,14 +34,13 @@ def read_programme(programme_id: int, db: Session = Depends(get_db), current_use
     return db_programme
 
 # Update
-@router.put("/programmes/{programme_id}", response_model= ProgrammeRead, dependencies = [Depends(RoleChecker(["admin"]))])
-def update_programme(programme_id: int, programme: ProgrammeUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+@router.patch("/programmes/{programme_id}", response_model= ProgrammeRead)
+def update_programme(programme_id: int, programme: ProgrammeUpdate, db: Session = Depends(get_db)):
     db_programme = db.query(Programme).filter(Programme.id == programme_id).first()
     if db_programme is None:
         raise HTTPException(status_code=404, detail="Programme not found")
     
-    update_data = programme.dict(exclude_unset=True)
-    for key, value in update_data.items():
+    for key, value in programme.dict(exclude_unset=True).items():
         setattr(db_programme, key, value)
     
     db.commit()

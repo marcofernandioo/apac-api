@@ -13,8 +13,8 @@ from src.auth.jwt import get_current_user, RoleChecker
 router = APIRouter()
 
 # Create an Intake
-@router.post('/intake', response_model = IntakeRead, dependencies = [Depends(RoleChecker(["scheduler"]))])
-def create_intake(intake: IntakeBase, db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
+@router.post('/intake', response_model = IntakeRead)
+def create_intake(intake: IntakeBase, db: Annotated[Session, Depends(get_db)]):
     db_intake = Intake(**intake.dict())
     db.add(db_intake)
     db.commit()
@@ -22,17 +22,14 @@ def create_intake(intake: IntakeBase, db: Annotated[Session, Depends(get_db)], c
     return db_intake
 
 # Get all intakes
-@router.get('/intake/all', response_model=List[IntakeRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
+@router.get('/intake/all', response_model=List[IntakeRead])
 def get_all_intake(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user),
     year: Optional[int] = Query(None, description="Filter intakes by year"),
     groupname: Optional[str] = Query(None, description="Filter intakes by group name"),
-    # group_ids: List[int] = Query(None, description="Filter intakes by list of group IDs")
     group_ids: Optional[str] = Query(None, description="Filter intakes by comma-separated list of group IDs")
 ):
     query = db.query(Intake).join(Group)
-    # query = db.query(Intake).options(joinedload(Intake.group))
     
     if year is not None:
         query = query.filter(extract('year', Intake.startdate) == year)

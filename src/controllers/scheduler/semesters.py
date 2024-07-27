@@ -21,10 +21,9 @@ def create_semester(semester: SemesterBase, db: Annotated[Session, Depends(get_d
     db.refresh(db_semester)
     return db_semester
 
-@router.get('/semester/all', response_model = List[SemesterRead], dependencies = [Depends(RoleChecker(["scheduler"]))])
+@router.get('/semester/all', response_model = List[SemesterRead])
 def get_all_semester(
     db: Annotated[Session, Depends(get_db)], 
-    current_user: dict = Depends(get_current_user), 
     intakeid: Optional[str] = Query(None, description='Filter semesters by intake id'),
     intake_ids: Optional[str] = Query(None, description='Filter semesters by comma-separated list of intake IDs')
 ):
@@ -81,27 +80,6 @@ def create_multiple_semesters(intake_id: int, semester_input: List[SemesterCreat
 
     return created_sems
 
-# @router.post('/semester/update', response_model=SemesterRead)
-# def update_semester(intake_id: int, semester_input: List[SemesterUpdate], db: Session = Depends(get_db)):
-#     # 1. Fetch the semester
-#     semester = db.query(Semester).filter(Semester.intakeid == intake_id).first()
-#     if not semester:
-#         raise HTTPException(status_code=404, detail="Semester not found")
-
-#     # 2. Update the semester object
-#     for key, value in semester_input.dict(exclude_unset=True).items():
-#         setattr(semester, key, value)
-
-#     try:
-#         db.commit()
-#         db.refresh(semester)
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=400, detail=str(e))
-
-#     return semester
-
-# # WAS USING THIS ONE. 
 @router.post('/semester/update', response_model=List[SemesterRead])
 async def update_semesters(request: Request, intake_id: int, semester_updates: List[SemesterUpdate], db: Session = Depends(get_db)):
     try:
@@ -116,89 +94,10 @@ async def update_semesters(request: Request, intake_id: int, semester_updates: L
         db.commit()
         for semester in new_semesters:
             db.refresh(semester)
-        return new_semesters  # Move the return statement here
+        return new_semesters
     
     except Exception as e:
         print(e)
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
     
-# @router.post('/semester/update', response_model=List[SemesterRead])
-# def update_semesters(intake_id: int, semester_updates: List[SemesterUpdate], db: Session = Depends(get_db)):
-#     try:
-#         # 1. Delete all existing semesters for the given intake_id
-#         db.query(Semester).filter(Semester.intakeid == intake_id).delete()
-
-#         # 2. Create new semester objects
-#         new_semesters = [
-#             Semester(**{k: v for k, v in semester.dict().items() 
-#                         if k not in ['intakeid', 'duration']}, 
-#                      intakeid=intake_id) 
-#             for semester in semester_updates
-#         ]
-
-#         # 3. Add all new semesters to the database
-#         db.add_all(new_semesters)
-        
-#         # 4. Commit the changes
-#         db.commit()
-
-#         # 5. Refresh the semester objects to get their IDs
-#         for semester in new_semesters:
-#             db.refresh(semester)
-
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(status_code=400, detail=str(e))
-
-#     return new_semesters
-
-# @router.post('/semester/update', response_model=List[SemesterRead])
-# async def update_semesters(request: Request, intake_id: int, db: Session = Depends(get_db)):
-#     try:
-#         # Get raw body
-#         body = await request.body()
-
-#         # Parse JSON manually
-#         try:
-#             data = json.loads(body)
-#         except json.JSONDecodeError as e:
-#             raise HTTPException(
-#                 status_code=400, 
-#                 detail={"error": "Invalid JSON", "message": str(e)}
-#             )
-
-#         # Validate against Pydantic model
-#         try:
-#             semester_updates = [SemesterUpdate(**item) for item in data]
-#         except ValidationError as e:
-#             raise HTTPException(
-#                 status_code=422, 
-#                 detail={"error": "Validation Error", "message": e.errors()}
-#             )
-
-#         # Process the data
-#         db.query(Semester).filter(Semester.intakeid == intake_id).delete()
-#         new_semesters = [
-#             Semester(**semester.dict(exclude_unset=True), intakeid=intake_id) 
-#             for semester in semester_updates
-#         ]
-#         db.add_all(new_semesters)
-#         db.commit()
-#         for semester in new_semesters:
-#             db.refresh(semester)
-        
-#         return new_semesters
-
-#     except RequestValidationError as e:
-#         raise HTTPException(
-#             status_code=422, 
-#             detail={"error": "Request Validation Error", "message": e.errors()}
-#         )
-    
-#     except Exception as e:
-#         db.rollback()
-#         raise HTTPException(
-#             status_code=500, 
-#             detail={"error": "Unexpected Error", "message": str(e)}
-#         )

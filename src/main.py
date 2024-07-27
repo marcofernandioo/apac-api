@@ -24,7 +24,6 @@ from src.models.Intake import Intake
 from src.models.Semester import Semester
 from src.models.Course import Course
 from src.models.Programme import Programme
-# from src.models.Major import Major
  
 from src.controllers.admin import courses, programmes, majors
 from src.controllers.scheduler import semesters, intakes
@@ -67,28 +66,11 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 @app.get("/")
 def root():
-    return {"data": "dllm pghkc!"};
+    return {"data": "test!"};
 
 @app.get("/xh")
 def lllm():
     return {"meh": "data"}
-
-records_list: List[Record] = []
-
-@app.post("/records", status_code=201, response_model=Record)
-def create_record(record: Record):
-    print(record)
-    records_list.append(record)
-    return record
-
-@app.get("/records/all")
-def get_all_records():
-    return {"data": "no records for now!", "status": "", "loumou": "lei's"}
-
-@app.get('/testpost/get')
-def testpost_get(db: db_dependency):
-    user = db.query(TestPost).first()
-    return user
 
 # Create a Group
 @app.post('/group', response_model=GroupRead)

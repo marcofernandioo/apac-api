@@ -21,3 +21,5 @@ class ProgrammeUpdate(BaseModel):
     programmename: Optional[str]
     semesters: Optional[int]
     course_id: Optional[int]
+    assignableIntake: Optional[bool]
+    code: Optional[str]

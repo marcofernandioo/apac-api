@@ -38,13 +38,15 @@ def delete_course(course_id: int, db: Annotated[Session, Depends(get_db)], curre
     return {"message": f"Course {course_id} has been deleted successfully"}
 
 # Update Course
-@router.put('/course/{course_id}', response_model=CourseCreate, dependencies = [Depends(RoleChecker(["admin"]))])
+@router.patch('/course/{course_id}', response_model=CourseCreate, dependencies = [Depends(RoleChecker(["admin"]))])
 def update_course(course_id: int, course: CourseUpdate, db: Annotated[Session, Depends(get_db)], current_user: dict = Depends(get_current_user)):
     db_course = db.query(Course).filter(Course.id == course_id).first()
     if db_course is None:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    db_course.coursename = course.coursename
+    for key, value in course.dict(exclude_unset=True).items():
+        setattr(db_course, key, value)
+        
     db.commit()
     db.refresh(db_course)
     return db_course

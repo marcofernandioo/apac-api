@@ -11,7 +11,9 @@ class CourseCreate(CourseBase):
     pass
 
 class CourseUpdate(BaseModel):
-    coursename: str
+    coursename: Optional[str]
+    assignableIntake: Optional[bool]
+    code: Optional[str]
 
 class CourseRead(CourseBase):
     id: int
